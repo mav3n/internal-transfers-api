@@ -1,8 +1,10 @@
 package com.transfers.internal.repository
 
 import com.transfers.internal.model.Account
+import com.transfers.internal.rest.exception.AccountNotFoundException
 import com.transfers.internal.rest.exception.InsufficientBalanceException
 import com.transfers.internal.util.normalize
+import java.lang.IllegalStateException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.UUID
@@ -20,20 +22,25 @@ open class AccountRepository {
     open fun createAccount(balance: BigDecimal): Account =
         createAccountId().let { id -> Account(id, balance).also { ACCOUNTS[id] = it } }
 
-    @Throws(InsufficientBalanceException::class)
+    @Throws(InsufficientBalanceException::class, AccountNotFoundException::class)
     open fun debitBalance(accountId: UUID, amount: BigDecimal) {
         synchronized(lock(accountId)) {
-            if (ACCOUNTS[accountId]!!.balance >= amount) {
-                ACCOUNTS[accountId]!!.balance = ACCOUNTS[accountId]!!.balance.subtract(amount)
-            } else {
-                throw InsufficientBalanceException("Sender Account has insufficient balance")
-            }
+            ACCOUNTS[accountId]?.let {
+                if (it.balance >= amount) {
+                    it.balance -= amount
+                } else {
+                    throw InsufficientBalanceException("Sender Account has insufficient balance")
+                }
+            } ?: throw AccountNotFoundException("Account not found with Id:$accountId")
         }
     }
 
+    @Throws(AccountNotFoundException::class)
     open fun creditBalance(accountId: UUID, amount: BigDecimal) {
         synchronized(lock(accountId)) {
-            ACCOUNTS[accountId]!!.balance = ACCOUNTS[accountId]!!.balance.add(amount)
+            ACCOUNTS[accountId]?.let {
+                it.balance += amount
+            } ?: throw AccountNotFoundException("Account not found with Id:$accountId")
         }
     }
 
@@ -75,7 +82,8 @@ open class AccountRepository {
 
         private fun randomIds(): List<UUID> = (1..10).map { UUID.randomUUID() }
 
-        private fun lock(id: UUID): Any = id.normalize(LOCK_SIZE).let { LOCKS[it] }!!
+        private fun lock(id: UUID): Any =
+            id.normalize(LOCK_SIZE).let { LOCKS[it] } ?: throw IllegalStateException("Lock should have been present!")
 
     }
 
