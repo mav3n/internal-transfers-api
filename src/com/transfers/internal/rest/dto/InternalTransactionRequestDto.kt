@@ -15,4 +15,8 @@ data class InternalTransactionRequestDto(
 )
 
 fun InternalTransactionRequestDto.toModel() =
-    InternalTransaction(this.receiverAccountId!!, this.senderAccountId!!, this.amount!!)
+    InternalTransaction(
+        requireNotNull(this.receiverAccountId),
+        requireNotNull(this.senderAccountId),
+        requireNotNull(this.amount)
+    )
