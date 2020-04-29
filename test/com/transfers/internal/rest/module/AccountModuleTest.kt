@@ -4,6 +4,7 @@ import com.transfers.internal.model.Account
 import com.transfers.internal.module
 import com.transfers.internal.rest.dto.AccountRequestDto
 import com.transfers.internal.rest.dto.ErrorDto
+import com.transfers.internal.util.contentOrEmpty
 import com.transfers.internal.util.fromJson
 import com.transfers.internal.util.toJson
 import io.ktor.http.ContentType
@@ -26,8 +27,8 @@ class AccountModuleTest {
         withTestApplication({ module() }) {
             handleRequest(HttpMethod.Get, "/accounts").apply {
                 assertEquals(HttpStatusCode.OK, response.status())
-                assertTrue { response.content!!.contains("id") }
-                assertTrue { response.content!!.contains("balance") }
+                assertTrue { response.contentOrEmpty.contains("id") }
+                assertTrue { response.contentOrEmpty.contains("balance") }
             }
         }
     }
@@ -44,7 +45,7 @@ class AccountModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.OK, response.status())
-                response.content!!.fromJson<Account>().let {
+                response.contentOrEmpty.fromJson<Account>().let {
                     assertEquals(BigDecimal(100), it.balance)
                     assertNotNull(it.id)
                 }
@@ -65,7 +66,7 @@ class AccountModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
-                response.content!!.fromJson<ErrorDto>().let {
+                response.contentOrEmpty.fromJson<ErrorDto>().let {
                     assertEquals(400, it.errorCode)
                     assertEquals("balance must not be null", it.message)
                 }

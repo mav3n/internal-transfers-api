@@ -1,10 +1,12 @@
 package com.transfers.internal.rest.module
 
+import com.transfers.internal.appModules
 import com.transfers.internal.model.Account
-import com.transfers.internal.module
+import com.transfers.internal.repository.AccountRepository
 import com.transfers.internal.rest.dto.ErrorDto
 import com.transfers.internal.rest.dto.InternalTransactionRequestDto
-import com.transfers.internal.service.Component
+import com.transfers.internal.service.beanDefinitionsModule
+import com.transfers.internal.util.contentOrEmpty
 import com.transfers.internal.util.fromJson
 import com.transfers.internal.util.toJson
 import io.ktor.http.ContentType
@@ -19,32 +21,45 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.test.KoinTest
+import org.koin.test.inject
 import java.math.BigDecimal
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class InternalTransferModuleTest : KoinTest {
 
-class InternalTransferModuleTest {
-
-    private val accountRepository = Component.accountRepository
     private lateinit var account1: Account
     private lateinit var account2: Account
 
+    private val accountRepository by inject<AccountRepository>()
+
     @BeforeEach
     fun setup() {
+        stopKoin()
+        startKoin { modules(beanDefinitionsModule) }
         account1 = accountRepository.createAccount(BigDecimal(100))
         account2 = accountRepository.createAccount(BigDecimal(100))
     }
 
+    @AfterAll
+    fun cleanup() {
+        stopKoin()
+    }
 
     @Test
     fun `should process internal transfer successfully`() {
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             handleRequest(HttpMethod.Post, "/internal/transfer/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(
@@ -64,7 +79,7 @@ class InternalTransferModuleTest {
 
     @Test
     fun `should return error when receiver account id is null`() {
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             handleRequest(HttpMethod.Post, "/internal/transfer/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(
@@ -76,7 +91,7 @@ class InternalTransferModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
-                response.content!!.fromJson<ErrorDto>().let {
+                response.contentOrEmpty.fromJson<ErrorDto>().let {
                     assertEquals(400, it.errorCode)
                     assertEquals("receiverAccountId must not be null", it.message)
                 }
@@ -86,7 +101,7 @@ class InternalTransferModuleTest {
 
     @Test
     fun `should return error when sender account id is null`() {
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             handleRequest(HttpMethod.Post, "/internal/transfer/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(
@@ -98,7 +113,7 @@ class InternalTransferModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
-                response.content!!.fromJson<ErrorDto>().let {
+                response.contentOrEmpty.fromJson<ErrorDto>().let {
                     assertEquals(400, it.errorCode)
                     assertEquals("senderAccountId must not be null", it.message)
                 }
@@ -108,7 +123,7 @@ class InternalTransferModuleTest {
 
     @Test
     fun `should return error when amount is null`() {
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             handleRequest(HttpMethod.Post, "/internal/transfer/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(
@@ -120,7 +135,7 @@ class InternalTransferModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
-                response.content!!.fromJson<ErrorDto>().let {
+                response.contentOrEmpty.fromJson<ErrorDto>().let {
                     assertEquals(400, it.errorCode)
                     assertEquals("amount must not be null", it.message)
                 }
@@ -131,7 +146,7 @@ class InternalTransferModuleTest {
     @ParameterizedTest
     @ValueSource(longs = [0, -10])
     fun `should return error when amount is less than or equal to zero`(amount: Long) {
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             handleRequest(HttpMethod.Post, "/internal/transfer/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(
@@ -143,7 +158,7 @@ class InternalTransferModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
-                response.content!!.fromJson<ErrorDto>().let {
+                response.contentOrEmpty.fromJson<ErrorDto>().let {
                     assertEquals(400, it.errorCode)
                     assertEquals("Amount to be transferred should be greater than 0", it.message)
                 }
@@ -153,7 +168,7 @@ class InternalTransferModuleTest {
 
     @Test
     fun `should return error when sender and receiver are same`() {
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             handleRequest(HttpMethod.Post, "/internal/transfer/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(
@@ -165,7 +180,7 @@ class InternalTransferModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
-                response.content!!.fromJson<ErrorDto>().let {
+                response.contentOrEmpty.fromJson<ErrorDto>().let {
                     assertEquals(400, it.errorCode)
                     assertEquals("Sender and Receiver accounts cannot be same", it.message)
                 }
@@ -176,7 +191,7 @@ class InternalTransferModuleTest {
     @Test
     fun `should return error when account not found`() {
         val receiverAccountId = UUID.randomUUID()
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             handleRequest(HttpMethod.Post, "/internal/transfer/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(
@@ -188,7 +203,7 @@ class InternalTransferModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.NotFound, response.status())
-                response.content!!.fromJson<ErrorDto>().let {
+                response.contentOrEmpty.fromJson<ErrorDto>().let {
                     assertEquals(404, it.errorCode)
                     assertEquals("Account not found with Id:$receiverAccountId", it.message)
                 }
@@ -198,7 +213,7 @@ class InternalTransferModuleTest {
 
     @Test
     fun `should return error when sender account has lower than required balance`() {
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             handleRequest(HttpMethod.Post, "/internal/transfer/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(
@@ -210,7 +225,7 @@ class InternalTransferModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
-                response.content!!.fromJson<ErrorDto>().let {
+                response.contentOrEmpty.fromJson<ErrorDto>().let {
                     assertEquals(400, it.errorCode)
                     assertEquals("Sender Account has insufficient balance", it.message)
                 }
@@ -220,7 +235,7 @@ class InternalTransferModuleTest {
 
     @Test
     fun `should return error when invalid UUID is passed as accountId`() {
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             handleRequest(HttpMethod.Post, "/internal/transfer/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(
@@ -234,7 +249,7 @@ class InternalTransferModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
-                response.content!!.fromJson<ErrorDto>().let {
+                response.contentOrEmpty.fromJson<ErrorDto>().let {
                     assertEquals(400, it.errorCode)
                     assertTrue(
                         it.message
@@ -247,7 +262,7 @@ class InternalTransferModuleTest {
 
     @Test
     fun `should return error when invalid JSON is passed as input`() {
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             handleRequest(HttpMethod.Post, "/internal/transfer/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(
@@ -257,7 +272,7 @@ class InternalTransferModuleTest {
                 )
             }.apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
-                response.content!!.fromJson<ErrorDto>().let {
+                response.contentOrEmpty.fromJson<ErrorDto>().let {
                     assertEquals(400, it.errorCode)
                     assertEquals("Invalid JSON. Provide a valid JSON as input", it.message)
                 }
@@ -269,7 +284,7 @@ class InternalTransferModuleTest {
     fun `should process concurrent internal transfers successfully`() {
         account1 = accountRepository.createAccount(BigDecimal(1000))
         account2 = accountRepository.createAccount(BigDecimal(1000))
-        withTestApplication({ module() }) {
+        withTestApplication({ appModules() }) {
             runBlocking {
                 coroutineScope {
                     (1..1000).map {

@@ -2,6 +2,7 @@ package com.transfers.internal.rest.exception
 
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
+import com.transfers.internal.log
 import com.transfers.internal.rest.dto.ErrorDto
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -23,7 +24,7 @@ fun Application.exceptionHandler() {
                         it.value
                     )
                 }
-            )
+            ).also { log.error("Internal Server Error: $e") }
         }
 
         exception<BadTransactionRequestException> { e ->

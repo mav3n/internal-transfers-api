@@ -1,6 +1,7 @@
 package com.transfers.internal.util
 
 import com.google.gson.Gson
+import io.ktor.server.testing.TestApplicationResponse
 import org.mockito.Mockito
 import java.math.BigDecimal
 import java.util.UUID
@@ -15,3 +16,6 @@ inline fun <reified T : Any> any(default: T): T = Mockito.any(T::class.java) ?: 
 fun anyUUID() = any<UUID>(UUID.randomUUID())
 
 fun anyBigDecimal() = any<BigDecimal>(BigDecimal.ZERO)
+
+val TestApplicationResponse.contentOrEmpty: String
+    get() = this.content ?: ""

@@ -1,8 +1,9 @@
 package com.transfers.internal.rest.module
 
+import com.transfers.internal.log
 import com.transfers.internal.rest.dto.AccountRequestDto
-import com.transfers.internal.service.Component
-import com.transfers.internal.util.validate
+import com.transfers.internal.service.AccountService
+import com.transfers.internal.util.validateBy
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
@@ -12,27 +13,27 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
+import org.koin.ktor.ext.inject
+import javax.validation.Validator
 
 
 fun Application.accountsModule() {
 
-    val accountService = Component.accountService
+    val accountService: AccountService by inject()
+    val validator: Validator by inject()
 
     routing {
-
         route("/accounts") {
             get {
-                accountService.accounts()
                 call.respond(accountService.accounts())
             }
-
             post {
                 val accountRequestDto = call.receive<AccountRequestDto>()
-                accountRequestDto.validate()
+                accountRequestDto.validateBy(validator)
+                log.info("process=create_account status=request_validated")
                 call.respond(HttpStatusCode.OK, accountService.createAccount(accountRequestDto))
             }
         }
-
     }
 
 }

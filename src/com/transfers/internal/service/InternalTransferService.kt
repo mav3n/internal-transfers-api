@@ -17,10 +17,12 @@ class InternalTransferService(private val accountRepository: AccountRepository) 
         try {
             validateTransaction(transaction)
             accountRepository.debitBalance(transaction.senderAccountId, transaction.amount)
-            log.info("Amount ${transaction.amount} debited from accountId ${transaction.senderAccountId}")
+            log.info("process=process_transaction status=debited_from account_id=${transaction.senderAccountId} " +
+                        "amount=${transaction.amount}")
             try {
                 accountRepository.creditBalance(transaction.receiverAccountId, transaction.amount)
-                log.info("Amount ${transaction.amount} credited to accountId ${transaction.senderAccountId}")
+                log.info("process=process_transaction status=credited_to account_id=${transaction.senderAccountId} " +
+                            "amount=${transaction.amount}")
             } catch (e: Exception) {
                 // Rollback the debit if credit fails
                 accountRepository.creditBalance(transaction.senderAccountId, transaction.amount)
