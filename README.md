@@ -10,6 +10,7 @@ A REST API for money transfers between accounts.
 
 ### Other libraries used
 
+* [Koin](https://insert-koin.io/) - Dependency Injection Framework
 * [JaCoCo](https://www.jacoco.org/) - code coverage
 * [hibernate-validator](https://github.com/hibernate/hibernate-validator) - request validation
 * [JUnit5](https://junit.org/junit5/) - testing
@@ -25,15 +26,20 @@ A REST API for money transfers between accounts.
 
 Run the below command on terminal to build the jar:
 
-```console
+```shell script
 ./gradlew clean build
 ```
 A fat-jar will be created in location `./build/libs/internal-transfers-api-1.0.0-all.jar`
 
 ### Running
-Once you have built the jar using above step, you can start the application by below command:
+Once you have built the jar using above step, you can start the application by any of the below commands:
 
-```console
+##### Gradle Command
+```shell script
+./gradlew run
+```
+##### Direct Command
+```shell script
 java -jar ./build/libs/internal-transfers-api-1.0.0-all.jar
 ```
 
@@ -41,7 +47,7 @@ java -jar ./build/libs/internal-transfers-api-1.0.0-all.jar
 
 Run the below command on terminal to test the application and generate a test report and a JaCoCo code coverage report:
 
-```console
+```shell script
 ./gradlew clean test
 ```
 Test reports can be found at `./build/reports/tests/test/index.html`
@@ -56,6 +62,12 @@ Thus the available endpoints information has been added here.
 ### Account Endpoints
 1) GET `localhost:8090/accounts` - Returns all the accounts available.
 (For the ease of testability, I have created 10 random accounts already)
+#### Sample Request
+```shell script
+curl --request GET \
+  --url http://localhost:8090/accounts
+```
+
 #### Sample Response
 ```json
 [
@@ -71,10 +83,13 @@ Thus the available endpoints information has been added here.
 ```
 2) POST `localhost:8090/accounts` - Creates an account.
 #### Sample Request
-```json
-{
+```shell script
+curl --request POST \
+  --url http://localhost:8090/accounts \
+  --header 'content-type: application/json' \
+  --data '{
     "balance": "123"
-}
+}'
 ```
 #### Sample Response
 ```json
@@ -87,12 +102,15 @@ Thus the available endpoints information has been added here.
 ### Internal Transfer Endpoints
 1) POST `localhost:8090/internal/transfer/` - Transfers Money from one account to another
 #### Sample Request
-```json
-{
+```shell script
+curl --request POST \
+  --url http://localhost:8090/internal/transfer/ \
+  --header 'content-type: application/json' \
+  --data '{
     "senderAccountId": "833fb7f0-9549-4dbd-b570-2d9e4be2b0ef",
     "receiverAccountId": "3c8754aa-6fbe-4b72-ad08-dcbf29501ea3",
     "amount": 12
-}
+}'
 ```
 #### Sample Response
-No json response for this endpoint, just HTTP status is returned.
+No json response for this endpoint, just HTTP status gets returned.
