@@ -43,7 +43,13 @@ Once you have built the jar using above step, you can start the application by a
 java -jar ./build/libs/internal-transfers-api-1.0.0-all.jar
 ```
 
-### Testing and Reports
+## Running on Docker
+Make sure docker is running on your machine and then trigger the `docker.sh` script located in the `resources/scripts` path.
+```shell script
+./resources/scripts/docker.sh
+```
+
+## Testing and Reports
 
 Run the below command on terminal to test the application and generate a test report and a JaCoCo code coverage report:
 
@@ -60,15 +66,15 @@ This api doesn't have a Swagger/OpenAPI integration because of the lack of an of
 Thus the available endpoints information has been added here.
 
 ### Account Endpoints
-1) GET `localhost:8090/accounts` - Returns all the accounts available.
+#### 1) Get All Accounts
+GET `localhost:8090/accounts` - Returns all the accounts available.
 (For the ease of testability, I have created 10 random accounts already)
-#### Sample Request
+##### Sample Request
 ```shell script
 curl --request GET \
   --url http://localhost:8090/accounts
 ```
-
-#### Sample Response
+##### Sample Response
 ```json
 [
     {
@@ -81,8 +87,10 @@ curl --request GET \
     }
 ]
 ```
-2) POST `localhost:8090/accounts` - Creates an account.
-#### Sample Request
+
+#### 2) Create Account
+POST `localhost:8090/accounts` - Creates a new account.
+##### Sample Request
 ```shell script
 curl --request POST \
   --url http://localhost:8090/accounts \
@@ -91,7 +99,7 @@ curl --request POST \
     "balance": "123"
 }'
 ```
-#### Sample Response
+##### Sample Response
 ```json
 {
     "id": "3c8754aa-6fbe-4b72-ad08-dcbf29501ea3",
@@ -100,8 +108,9 @@ curl --request POST \
 ```
 
 ### Internal Transfer Endpoints
-1) POST `localhost:8090/internal/transfer/` - Transfers Money from one account to another
-#### Sample Request
+#### 1) Transfer Money
+POST `localhost:8090/internal/transfer/` - Transfers Money from one account to another
+##### Sample Request
 ```shell script
 curl --request POST \
   --url http://localhost:8090/internal/transfer/ \
@@ -112,5 +121,5 @@ curl --request POST \
     "amount": 12
 }'
 ```
-#### Sample Response
+##### Sample Response
 No json response for this endpoint, just HTTP status gets returned.
