@@ -31,7 +31,7 @@ fun Application.accountsModule() {
                 val accountRequestDto = call.receive<AccountRequestDto>()
                 accountRequestDto.validateBy(validator)
                 log.info("process=create_account status=request_validated")
-                call.respond(HttpStatusCode.OK, accountService.createAccount(accountRequestDto))
+                call.respond(HttpStatusCode.Created, accountService.createAccount(accountRequestDto))
             }
         }
     }

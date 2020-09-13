@@ -48,6 +48,7 @@ Make sure docker is running on your machine and then trigger the `docker.sh` scr
 ```shell script
 ./resources/scripts/docker.sh
 ```
+The above script will run the application on post 8090 and will also run the [swagger-ui](http://localhost:8091/swagger/) docker container for api-spec on port 8091. 
 
 ## Testing and Reports
 
@@ -63,7 +64,8 @@ Code Coverage reports can be found at `./build/reports/jacoco/test/html/index.ht
 
 ## Available Endpoints
 This api doesn't have a Swagger/OpenAPI integration because of the lack of an official/cleaner OpenAPI support for Ktor Framework. 
-Thus the available endpoints information has been added here.
+
+OpenAPI spec for this service is available under `docs` directory in `api-spec.yml` file. Also, the available end-points information has been added below.
 
 ### Account Endpoints
 #### 1) Get All Accounts

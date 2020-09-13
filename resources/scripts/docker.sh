@@ -31,3 +31,17 @@ docker run -d \
   ${REGISTRY}/${IMAGE}:latest
 
 echo "Docker container started on port ${PORT} successfully!"
+
+API_SPEC_PATH=`pwd`/docs
+SWAGGER_PORT=8091
+
+echo ">> starting docker container for swagger..."
+
+docker run -d \
+  -p ${SWAGGER_PORT}:8080 \
+  -e BASE_URL=/swagger \
+  -e SWAGGER_JSON=/tmp/api-spec.yml \
+  -v ${API_SPEC_PATH}:/tmp \
+  swaggerapi/swagger-ui
+
+echo "Docker container for swagger started on port ${SWAGGER_PORT} successfully!"
