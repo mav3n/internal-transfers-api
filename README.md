@@ -48,6 +48,7 @@ Make sure docker is running on your machine and then trigger the `docker.sh` scr
 ```shell script
 ./resources/scripts/docker.sh
 ```
+The above script will run the application on post 8090 and will also run the [swagger-ui](http://localhost:8091/swagger/) docker container for api-spec on port 8091. 
 
 ## Testing and Reports
 

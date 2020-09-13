@@ -34,7 +34,7 @@ class AccountModuleTest {
     }
 
     @Test
-    fun `internal transfer processes transaction successfully`() {
+    fun `should create account successfully`() {
         withTestApplication({ module() }) {
             handleRequest(HttpMethod.Post, "/accounts/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
@@ -44,12 +44,11 @@ class AccountModuleTest {
                     ).toJson()
                 )
             }.apply {
-                assertEquals(HttpStatusCode.OK, response.status())
+                assertEquals(HttpStatusCode.Created, response.status())
                 response.contentOrEmpty.fromJson<Account>().let {
                     assertEquals(BigDecimal(100), it.balance)
                     assertNotNull(it.id)
                 }
-
             }
         }
     }
