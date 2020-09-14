@@ -6,10 +6,10 @@ import com.transfers.internal.rest.module.accountsModule
 import com.transfers.internal.rest.module.internalTransferModule
 import com.transfers.internal.service.beanDefinitionsModule
 import com.transfers.internal.util.loggerOf
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.features.ContentNegotiation
-import io.ktor.jackson.jackson
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.http.HttpMethod.Companion.Options
+import io.ktor.jackson.*
 import org.koin.ktor.ext.Koin
 import org.slf4j.Logger
 
@@ -25,6 +25,7 @@ fun Application.module() {
 fun Application.appModules() {
     jacksonModule()
     exceptionHandler()
+    cors()
 
     // Controllers or Routes
     accountsModule()
@@ -45,6 +46,14 @@ private fun Application.appBeans() {
         modules(beanDefinitionsModule)
     }
     log.info("Installed Koin Module and loaded dependencies in KoinContext")
+}
+
+private fun Application.cors() {
+    val swaggerPort = System.getenv("SWAGGER_PORT")?.toInt() ?: 8091
+    install(CORS) {
+        method(Options)
+        host("localhost:$swaggerPort")
+    }
 }
 
 val Application.log: Logger
